@@ -1,0 +1,20 @@
+{
+  "name": "grabejs",
+  "version": "0.1.0",
+  "author": "Jimmy Huang <jimmy@netivism.com.tw>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jimyhuang/grabejs.git"
+  },
+  "dependencies" : {
+    "mkdirp": "~0.3"
+  },
+  "license": "Public Domain",
+  "engines": {
+    "node": ">=0.10.x",
+    "npm": "1.2.x"
+  },
+  "scripts": {
+    "start": "node app.js"
+  }
+}
