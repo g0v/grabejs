@@ -11,5 +11,7 @@ customize phantomjs for personal service.
 
 Usage
 -----
-http://<hostname>/shot/<graburl>
-online: http://i.jimmyhub.net/shot/www.nncf.org
+normal: http://<hostname>/shot/<graburl>
+thumbnail: http://<hostname>/shot/<graburl>_m
+original: http://<hostname>/shot/<graburl>_o original size
+
