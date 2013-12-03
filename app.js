@@ -7,19 +7,58 @@ var exec = require('child_process').exec;
 var mkdirp = require('mkdirp');
 var port = 11111;
 
-
 var server = http.createServer(function(req, res){
-  var grabe = function(url, filename, dest){
-    exec("phantomjs --ignore-ssl-errors=true grab.js '"+url+"' "+filename+'.png', function (error, stdout, stderr) {
+  var grabe = function(url, filename, dest, type){
+    if(type == 'image'){
+      var ext = '.png';
+    }
+    else{
+      var ext = '.html';
+    }
+    exec("phantomjs --ignore-ssl-errors=true grab.js '"+url+"' "+filename+ext, function (error, stdout, stderr) {
       if (error !== null) {
         console.log('exec error: ' + error);
       }
       else{
-        crop(filename+'.png', dest);
+        if(type == 'image'){
+          cropImage(filename+ext, dest);
+        }
+        else{
+          writeHtml(filename+ext, dest);
+        }
       }
     });
   }
-  var crop = function(source, dest){
+
+  var writeHtml = function(filename, dest){
+    fs.exists(filename, function(exists){
+      if(exists){
+        fs.readFile(filename, function (err, data) {
+          if (!err){
+            dest = dest.replace(/\.htm|\.html$/g, '')+'.html';
+            fs.writeFile(dest, data, function(err){
+              if(!err){
+                fs.unlink(filename);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.end(data);
+              }
+              else{
+                notFound();
+              }
+            });
+          }
+          else{
+            console.log(err);
+            notFound();
+          }
+        });
+      }
+      else{
+        notFound();
+      }
+    });
+  }
+  var cropImage = function(source, dest){
     exec("convert -resize 600x -quality 80 "+source+" '"+dest+".jpg'", function (error, stdout, stderr) {
       if (error !== null) {
         console.log('exec error: ' + error);
@@ -42,6 +81,15 @@ var server = http.createServer(function(req, res){
     exec("convert -resize 100x -quality 50 "+source+" '"+dest+"_t.jpg'");
     exec("convert -quality 90 "+source+" '"+dest+"_o.jpg'");
   }
+  req.on('error', function (err) {
+    notFound();
+  });
+  var notFound = function(){
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.write('404 Not Found\n');
+    res.end();
+  }
+  // main
   var p = url.parse(req.url);
   if(p.path.match(/^\/shot\//i)){
     var webpage = p.path.replace(/^\/shot\//,'');
@@ -51,17 +99,20 @@ var server = http.createServer(function(req, res){
     var dir = 'public/shot';
     var dest = dir + '/' + webpage;
     var remote_url = 'http://'+webpage;
-    grabe(remote_url, tmp, dest, res);
+    grabe(remote_url, tmp, dest, 'image');
+  }
+  else if(p.path.match(/^\/html\//i)){
+    var webpage = p.path.replace(/^\/html\//,'');
+    webpage = webpage.replace(/^https?:\/\//i, '');
+    mkdirp('public/html/'+webpage.substr(0, webpage.lastIndexOf('/')));
+    var tmp = crypto.createHash('md5').update(webpage).digest("hex");
+    var dir = 'public/html';
+    var dest = dir + '/' + webpage;
+    var remote_url = 'http://'+webpage;
+    grabe(remote_url, tmp, dest, 'html');
   }
   else{
-    res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.write('404 Not Found\n');
-    res.end();
+    notFound();
   }
-  req.on('error', function (err) {
-    res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.write('404 Not Found\n');
-    res.end();
-  });
 });
 server.listen(port);
