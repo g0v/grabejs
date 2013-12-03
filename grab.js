@@ -21,7 +21,7 @@ if(url && filename){
       window.setTimeout(function () {
         render(page, type, filename);
         phantom.exit();
-      }, 10000); // Change timeout as required to allow sufficient time 
+      }, 20000); // Change timeout as required to allow sufficient time 
     }
   });
 }
