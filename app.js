@@ -39,7 +39,7 @@ var server = http.createServer(function(req, res){
         }
       }
     });
-    exec("convert -resize 100x -quality 40 "+source+" '"+dest+"_t.jpg'");
+    exec("convert -resize 100x -quality 50 "+source+" '"+dest+"_t.jpg'");
     exec("convert -quality 90 "+source+" '"+dest+"_o.jpg'");
   }
   var p = url.parse(req.url);
