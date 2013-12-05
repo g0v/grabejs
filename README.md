@@ -1,17 +1,25 @@
 grabejs
 =======
 
-Method
-------
-customize phantomjs for personal service.
+What's this?
+------------
 
-1. Use phantomjs for grab and render png.
+1. Use phantomjs for grab and render webpage to png.
 2. Use nginx for static image cache. (see config/nginx-sample.conf)
-2. Use imagemagick for convert image.
+3. Use imagemagick for resize image.
+4. Use phantomjs for pre-render html.
 
 Usage
 -----
-normal: http://<hostname>/shot/<graburl>
-thumbnail: http://<hostname>/shot/<graburl>_m
-original: http://<hostname>/shot/<graburl>_o original size
 
+Image:
+- normal: http://<hostname>/shot/<graburl>
+- thumbnail: http://<hostname>/shot/<graburl>_m
+- original: http://<hostname>/shot/<graburl>_o original size
+
+HTML:
+- http://<hostname>/html/<graburl>
+
+TODO
+----
+Save temporate file to another directory. 
