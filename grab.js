@@ -13,16 +13,10 @@ if(url && filename){
       page.settings.loadImages = false;
     }
     page.clipRect = {top:0, left:0, width:1280, height:1024};
-    if (status === 'success') {
+    window.setTimeout(function () {
       render(page, type, filename);
       phantom.exit();
-    }
-    else {
-      window.setTimeout(function () {
-        render(page, type, filename);
-        phantom.exit();
-      }, 20000); // Change timeout as required to allow sufficient time 
-    }
+    }, 6000); // Change timeout as required to allow sufficient time 
   });
 }
 var render = function(page, type, filename){
