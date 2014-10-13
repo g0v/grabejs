@@ -15,7 +15,7 @@ var server = http.createServer(function(req, res){
     else{
       var ext = '.html';
     }
-    exec("phantomjs --ignore-ssl-errors=true grab.js '"+url+"' "+filename+ext, function (error, stdout, stderr) {
+    exec("phantomjs --web-security=no --ignore-ssl-errors=true grab.js '"+url+"' "+filename+ext, function (error, stdout, stderr) {
       if (error !== null) {
         console.log('exec error: ' + error);
       }
