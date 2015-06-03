@@ -9,12 +9,27 @@ var port = 11111;
 
 var server = http.createServer(function(req, res){
   var grabe = function(url, filename, dest, type){
+    console.log(url);
     if(type == 'image'){
       var ext = '.png';
     }
     else{
       var ext = '.html';
     }
+    var interval;
+    interval = setInterval(function(){
+      fs.exists(filename+ext, function(exists){
+        if(exists){
+          if(type == 'image'){
+            cropImage(filename+ext, dest);
+          }
+          else{
+            writeHtml(filename+ext, dest);
+          }
+          clearInterval(interval);
+        }
+      });
+    }, 5000);
     exec("phantomjs --web-security=no --ignore-ssl-errors=true grab.js '"+url+"' "+filename+ext, function (error, stdout, stderr) {
       if (error !== null) {
         console.log('exec error: ' + error);
@@ -59,16 +74,16 @@ var server = http.createServer(function(req, res){
     });
   }
   var cropImage = function(source, dest){
-    exec("convert -resize 600x -quality 80 "+source+" '"+dest+".jpg'", function (error, stdout, stderr) {
+    exec("convert -resize 600x "+source+" '"+dest+".png'", function (error, stdout, stderr) {
       if (error !== null) {
         console.log('exec error: ' + error);
       }
       else{
         fs.unlink(source);
-        dest += '.jpg';
+        dest += '.png';
         if(fs.existsSync(dest)){
           var img = fs.readFileSync(dest);
-          res.writeHead(200, {'Content-Type': 'image/jpeg' });
+          res.writeHead(200, {'Content-Type': 'image/png' });
           res.end(img, 'binary');
         }
         else{
@@ -78,8 +93,8 @@ var server = http.createServer(function(req, res){
         }
       }
     });
-    exec("convert -resize 100x -quality 50 "+source+" '"+dest+"_t.jpg'");
-    exec("convert -quality 90 "+source+" '"+dest+"_o.jpg'");
+    exec("convert -resize 100x -quality 50 "+source+" '"+dest+"_t.png'");
+    exec("convert -quality 90 "+source+" '"+dest+"_o.png'");
   }
   req.on('error', function (err) {
     notFound();
@@ -93,13 +108,28 @@ var server = http.createServer(function(req, res){
   var p = url.parse(req.url);
   if(p.path.match(/^\/shot\//i)){
     var webpage = p.path.replace(/^\/shot\//,'');
+    var md5 = crypto.createHash('md5').update(webpage).digest("hex");
     webpage = webpage.replace(/^https?:\/\//i, '');
-    mkdirp('public/shot/'+webpage.substr(0, webpage.lastIndexOf('/')));
-    var tmp = crypto.createHash('md5').update(webpage).digest("hex");
     var dir = 'public/shot';
     var dest = dir + '/' + webpage;
+    var dirs = webpage.substr(0, webpage.lastIndexOf('/'));
+    var domain = webpage.substr(0, webpage.indexOf('/'));
     var remote_url = 'http://'+webpage;
-    grabe(remote_url, tmp, dest, 'image');
+    var md5_path = 'public/shot/'+domain+'/'+md5;
+
+    if(dest.length > 100){
+      dest = md5_path;  
+    }
+    mkdirp('public/shot/'+dirs);
+    if(fs.existsSync(dest+'.png')){
+      var img = fs.readFileSync(dest+'.png');
+      res.writeHead(200, {'Content-Type': 'image/png' });
+      res.end(img, 'binary');
+      return;
+    }
+    else{
+      grabe(remote_url, md5, dest, 'image');
+    }
   }
   else if(p.path.match(/^\/html\//i)){
     var webpage = p.path.replace(/^\/html\//,'');

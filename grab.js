@@ -6,17 +6,17 @@ var filename = system.args[2] || '';
 
 if(url && filename){
   var type = filename.match(/png$/) ? 'image' : 'html';
-  page.viewportSize = { width: 1280, height: 1024 };
+  page.viewportSize = { width: 1280, height: 800};
   page.settings.localToRemoteUrlAccessEnabled = true;
   page.open(url, function (status) {
     if(type === 'html'){
       page.settings.loadImages = false;
     }
-    page.clipRect = {top:0, left:0, width:1280, height:1024};
     window.setTimeout(function () {
       render(page, type, filename);
       phantom.exit();
-    }, 6000); // Change timeout as required to allow sufficient time 
+    }, 1500);
+
   });
 }
 var render = function(page, type, filename){
