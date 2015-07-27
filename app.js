@@ -30,19 +30,26 @@ var server = http.createServer(function(req, res){
         }
       });
     }, 5000);
-    exec("phantomjs --web-security=no --ignore-ssl-errors=true grab.js '"+url+"' "+filename+ext, function (error, stdout, stderr) {
-      if (error !== null) {
-        console.log('exec error: ' + error);
-      }
-      else{
-        if(type == 'image'){
-          cropImage(filename+ext, dest);
+    if(type == 'image'){
+      exec("wkhtmltoimage --width 1280 --height 960 --javascript-delay 10000 -q " + url + " " + filename+ext, function (error, stdout, stderr) {
+        cropImage(filename+ext, dest);
+      });
+    }
+    else{
+      exec("phantomjs --web-security=no --ignore-ssl-errors=true grab.js '"+url+"' "+filename+ext, function (error, stdout, stderr) {
+        if (error !== null) {
+          console.log('exec error: ' + error);
         }
         else{
-          writeHtml(filename+ext, dest);
+          if(type == 'image'){
+            cropImage(filename+ext, dest);
+          }
+          else{
+            writeHtml(filename+ext, dest);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   var writeHtml = function(filename, dest){
@@ -93,7 +100,7 @@ var server = http.createServer(function(req, res){
         }
       }
     });
-    exec("convert -resize 100x -quality 50 "+source+" '"+dest+"_t.png'");
+    exec("convert -resize 100x -quality 75 "+source+" '"+dest+"_t.png'");
     exec("convert -quality 90 "+source+" '"+dest+"_o.png'");
   }
   req.on('error', function (err) {
