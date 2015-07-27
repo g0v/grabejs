@@ -9,14 +9,22 @@ if(url && filename){
   page.viewportSize = { width: 1280, height: 800};
   page.settings.localToRemoteUrlAccessEnabled = true;
   page.open(url, function (status) {
+    page.evaluate(function() {
+        var body = document.body;
+        body.style.backgroundColor = '#fff';
+        var style = document.createElement('style');
+        style.innerHTML = '@font-face { font-family: "Droid Sans Fallback"; src: url("/usr/share/fonts/opentype/droid/DroidSansFallbackFull.otf") format("opentype"); } html * { font-family: "Droid Sans Fallback"; }'
+        style.type = 'text/css';
+        document.getElementsByTagName("head")[0].appendChild(style);
+    });
     if(type === 'html'){
       page.settings.loadImages = false;
     }
+    page.clipRect = {top:0, left:0, width:1280, height:1024};
     window.setTimeout(function () {
       render(page, type, filename);
       phantom.exit();
-    }, 1500);
-
+    }, 3500);
   });
 }
 var render = function(page, type, filename){
