@@ -31,7 +31,7 @@ var server = http.createServer(function(req, res){
       });
     }, 5000);
     if(type == 'image'){
-      exec("wkhtmltoimage --width 1280 --height 960 --javascript-delay 10000 -q " + url + " " + filename+ext, function (error, stdout, stderr) {
+      exec("wkhtmltoimage --width 1280 --javascript-delay 10000 -q " + url + " " + filename+ext, function (error, stdout, stderr) {
         cropImage(filename+ext, dest);
       });
     }
@@ -81,7 +81,9 @@ var server = http.createServer(function(req, res){
     });
   }
   var cropImage = function(source, dest){
-    exec("convert -resize 600x "+source+" '"+dest+".png'", function (error, stdout, stderr) {
+    exec("convert -resize 120x -gravity north -crop 120x90+0+0 "+source+" '"+dest+"_t.png'");
+    exec("convert -quality 75 "+source+" '"+dest+"_o.png'");
+    exec("convert -resize 600x -gravity north -crop 600x400+0+0 "+source+" '"+dest+".png'", function (error, stdout, stderr) {
       if (error !== null) {
         console.log('exec error: ' + error);
       }
@@ -94,32 +96,30 @@ var server = http.createServer(function(req, res){
           res.end(img, 'binary');
         }
         else{
-          res.writeHead(200, {'Content-Type': 'text/plain'});
+          res.writeHead(404, {'Content-Type': 'text/plain'});
           res.write('404 Not Found\n');
           res.end();
         }
       }
     });
-    exec("convert -resize 100x -quality 75 "+source+" '"+dest+"_t.png'");
-    exec("convert -quality 90 "+source+" '"+dest+"_o.png'");
   }
   req.on('error', function (err) {
     notFound();
   });
   var notFound = function(){
-    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.writeHead(404, {'Content-Type': 'text/plain'});
     res.write('404 Not Found\n');
     res.end();
   }
   // main
   var p = url.parse(req.url);
   if(p.path.match(/^\/shot\//i)){
-    var webpage = p.path.replace(/^\/shot\//,'');
+    var webpage = p.path.replace(/^\/shot\//, '');
     var md5 = crypto.createHash('md5').update(webpage).digest("hex");
     webpage = webpage.replace(/^https?:\/\//i, '');
     var dir = 'public/shot';
     var dest = dir + '/' + webpage;
-    var dirs = webpage.substr(0, webpage.lastIndexOf('/'));
+    var dirs = webpage.replace(/\/*$/, '');
     var domain = webpage.substr(0, webpage.indexOf('/'));
     var remote_url = 'http://'+webpage;
     var md5_path = 'public/shot/'+domain+'/'+md5;
@@ -127,6 +127,7 @@ var server = http.createServer(function(req, res){
     if(dest.length > 100){
       dest = md5_path;  
     }
+    console.log(dirs);
     mkdirp('public/shot/'+dirs);
     if(fs.existsSync(dest+'.png')){
       var img = fs.readFileSync(dest+'.png');
